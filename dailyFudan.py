@@ -140,7 +140,7 @@ if __name__ == "__main__":
         print("读取账号缓存中")
         with open("account.txt", "r") as old:
             raw = old.readlines()
-        if (raw[0][:3]!="uid") and (len(raw[0])<10):
+        if (raw[0][:3]!="uid") or (len(raw[0])<10):
             print("account.txt 内容无效, 请手动修改内容")
             sys.exit()
         uid = (raw[0].split(":"))[1].strip()
