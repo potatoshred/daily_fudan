@@ -100,7 +100,7 @@ class Zlapp:
 
         save_msg = json.loads(save.text)["m"]
 
-        if "已 经" in save_msg:
+        if "已经" in save_msg:
             print("********提交成功*******")
             self.close()
 
