@@ -168,6 +168,9 @@ class Zlapp(Fudan):
         save_msg = json_loads(save.text)["m"]
         print(save_msg,'\n\n')
 
+        # 再检查一遍
+        self.check()
+
 
 def get_account():
     """
