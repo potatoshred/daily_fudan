@@ -100,6 +100,7 @@ class Fudan:
         """
         exit_url = 'https://uis.fudan.edu.cn/authserver/logout?service=/authserver/login'
         expire = self.session.get(exit_url).headers.get('Set-Cookie')
+        # print(expire)
 
         if '01-Jan-1970' in expire:
             print("◉登出完毕")
@@ -157,7 +158,7 @@ class Zlapp(Fudan):
             "User-Agent": self.UA
         }
 
-        print("\n\n◉◉提交中\n\n")
+        print("\n\n◉◉提交中")
         save = self.session.post(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
                 data=self.last_info,
@@ -165,12 +166,8 @@ class Zlapp(Fudan):
                 allow_redirects=False)
 
         save_msg = json_loads(save.text)["m"]
+        print(save_msg,'\n\n')
 
-        if "已" in save_msg:
-            print("********提交成功*******")
-            self.close()
-        else:
-            self.check()
 
 def get_account():
     """
