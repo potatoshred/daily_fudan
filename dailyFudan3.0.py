@@ -168,9 +168,6 @@ class Zlapp(Fudan):
         save_msg = json_loads(save.text)["m"]
         print(save_msg,'\n\n')
 
-        # 再检查一遍
-        self.check()
-
 
 def get_account():
     """
@@ -204,7 +201,10 @@ if __name__ == '__main__':
                   'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
     daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
     daily_fudan.login()
+    
     daily_fudan.check()
     daily_fudan.checkin()
+    # 再检查一遍
+    daily_fudan.check()
 
     daily_fudan.close()
