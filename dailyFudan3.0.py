@@ -1,9 +1,10 @@
-from requests import session
-from lxml import etree
-from sys import exit as sys_exit
-from os import path as os_path
-from json import loads as json_loads
 import time
+from json import loads as json_loads
+from os import path as os_path
+from sys import exit as sys_exit
+
+from lxml import etree
+from requests import session
 
 class Fudan:
     """
@@ -128,7 +129,7 @@ class Zlapp(Fudan):
         print("◉检测是否已提交")
         get_info = self.session.get(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info')
-        last_info = json_loads(get_info.text)
+        last_info = get_info.json()
 
         print("◉上一次提交日期为:", last_info["d"]["info"]["date"])
 
@@ -139,6 +140,7 @@ class Zlapp(Fudan):
         # print("◉上一次提交GPS为", position["position"])
 
         today = time.strftime("%Y%m%d", time.localtime())
+
         if last_info["d"]["info"]["date"] == today:
             print("\n*******今日已提交*******")
             self.close()
@@ -159,6 +161,20 @@ class Zlapp(Fudan):
         }
 
         print("\n\n◉◉提交中")
+
+        geo_api_info = json_loads(self.last_info["geo_api_info"])
+        province = geo_api_info["addressComponent"].get("province", "")
+        city = geo_api_info["addressComponent"].get("city", "")
+        district = geo_api_info["addressComponent"].get("district", "")
+        self.last_info.update(
+                {
+                    "province": province,
+                    "city"    : city,
+                    "area"    : " ".join((province, city, district))
+                }
+        )
+        # print(self.last_info)
+
         save = self.session.post(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
                 data=self.last_info,
@@ -166,8 +182,7 @@ class Zlapp(Fudan):
                 allow_redirects=False)
 
         save_msg = json_loads(save.text)["m"]
-        print(save_msg,'\n\n')
-
+        print(save_msg, '\n\n')
 
 def get_account():
     """
@@ -201,7 +216,7 @@ if __name__ == '__main__':
                   'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
     daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
     daily_fudan.login()
-    
+
     daily_fudan.check()
     daily_fudan.checkin()
     # 再检查一遍
