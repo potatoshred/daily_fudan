@@ -168,6 +168,7 @@ class Zlapp(Fudan):
         district = geo_api_info["addressComponent"].get("district", "")
         self.last_info.update(
                 {
+                    "tw"      : "13",
                     "province": province,
                     "city"    : city,
                     "area"    : " ".join((province, city, district))
