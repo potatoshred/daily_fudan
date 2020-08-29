@@ -30,6 +30,7 @@ python3 dailyFudan.3.0.py
 初次使用，程序要求输入
 *所有参与打卡用户信息 fdu学号 fdu密码 打卡状态收件邮箱*
 
+
 首次输入后，信息将以如下的格式存在同级目录下accounts.txt中
 学号1:密码1:收件邮箱1
 学号2:密码2:收件邮箱2
@@ -42,6 +43,7 @@ python3 dailyFudan.3.0.py
 
 初次使用，程序要求输入
 *管理员邮箱服务器信息及发件账号及登陆凭证*
+
 首次输入后，信息将以如下的格式存在同级目录下admin.txt中
 应具有如下形式
 smtp.fdu.edu.cn:25:xxxx@fdu.edu.cn:xxxxx
@@ -59,7 +61,7 @@ smtp.fdu.edu.cn:25:xxxx@fdu.edu.cn:xxxxx
 主要介绍操作-启动程序这一步
 
 ![avatar](p5.png)
-
+![p5.png](https://i.loli.net/2020/08/29/YAH7mbUQqKoy2Gt.png)
 类似于linux下的sh文件，win10下使用bat进行批处理
 
 ``` shell
