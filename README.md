@@ -122,3 +122,13 @@ systemctl status card.timer
 ```
 
 足够幸运的话，你会收到邮件
+
+#### 近期勘误
+
+修正run.sh，切入脚本所在路径
+增加shell脚本激活conda环境
+需要将conda.sh传递给conda 随后才能使用conda activate命令
+``` shell
+source /home/hopeful/anaconda3/etc/profile.d/conda.sh
+conda acitvate base
+```
