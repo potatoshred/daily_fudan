@@ -2,6 +2,7 @@ import time
 from json import loads as json_loads
 from os import path as os_path
 from sys import exit as sys_exit
+from getpass import getpass
 
 from lxml import etree
 from requests import session
@@ -203,7 +204,7 @@ def get_account():
     else:
         print("未找到account.txt, 判断为首次运行, 请接下来依次输入学号密码")
         uid = input("学号：")
-        psw = input("密码：")
+        psw = getpass("密码：")
         with open("account.txt", "w") as new:
             tmp = "uid:" + uid + "\npsw:" + psw + "\n\n\n以上两行冒号后分别写上学号密码，不要加空格/换行，谢谢\n\n请注意文件安全，不要放在明显位置\n\n可以从dailyFudan.exe创建快捷方式到桌面"
             new.write(tmp)
