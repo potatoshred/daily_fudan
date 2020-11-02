@@ -1,10 +1,6 @@
-import time
-from json import loads as json_loads
-from os import path as os_path
-from sys import exit as sys_exit
-
 from lxml import etree
 from requests import session
+import time, json
 
 class Fudan:
     """
@@ -44,8 +40,8 @@ class Fudan:
             print("◉Initiated——", end="")
             return page_login.text
         else:
-            print("◉Fail to open Login Page, Check your Internet connection\n")
-            self.close()
+            raise RuntimeError("Fail to open Login Page, Check your Internet connection")
+            
 
     def login(self):
         """
@@ -90,10 +86,9 @@ class Fudan:
         if post.status_code == 302:
             print("\n***********************"
                   "\n◉登录成功"
-                  "\n***********************\n")
+                  "\n***********************")
         else:
-            print("◉登录失败，请检查账号信息")
-            self.close()
+            raise RuntimeError("登录失败，请检查账号信息")
 
     def logout(self):
         """
@@ -115,16 +110,17 @@ class Fudan:
         self.logout()
         self.session.close()
         print("◉关闭会话")
-        print("************************")
-        input("回车键退出")
-        sys_exit()
 
 class Zlapp(Fudan):
+    '''
+    检查是否已提交平安复旦的信息，并根据上一次填写的地理位置填报
+    '''
+
     last_info = ''
 
     def check(self):
         """
-        检查
+        检查是否已提交，并返回上一次提交的时间与地址
         """
         print("◉检测是否已提交")
         get_info = self.session.get(
@@ -134,7 +130,7 @@ class Zlapp(Fudan):
         print("◉上一次提交日期为:", last_info["d"]["info"]["date"])
 
         position = last_info["d"]["info"]['geo_api_info']
-        position = json_loads(position)
+        position = json.loads(position)
 
         print("◉上一次提交地址为:", position['formattedAddress'])
         # print("◉上一次提交GPS为", position["position"])
@@ -142,15 +138,14 @@ class Zlapp(Fudan):
         today = time.strftime("%Y%m%d", time.localtime())
 
         if last_info["d"]["info"]["date"] == today:
-            print("\n*******今日已提交*******")
-            self.close()
+            raise RuntimeError("今日已提交")
         else:
             print("\n\n*******未提交*******")
             self.last_info = last_info["d"]["info"]
 
     def checkin(self):
         """
-        提交
+        提交，并返回提交的状态
         """
         headers = {
             "Host"      : "zlapp.fudan.edu.cn",
@@ -162,7 +157,7 @@ class Zlapp(Fudan):
 
         print("\n\n◉◉提交中")
 
-        geo_api_info = json_loads(self.last_info["geo_api_info"])
+        geo_api_info = json.loads(self.last_info["geo_api_info"])
         province = geo_api_info["addressComponent"].get("province", "")
         city = geo_api_info["addressComponent"].get("city", "")
         district = geo_api_info["addressComponent"].get("district", "")
@@ -182,45 +177,5 @@ class Zlapp(Fudan):
                 headers=headers,
                 allow_redirects=False)
 
-        save_msg = json_loads(save.text)["m"]
+        save_msg = json.loads(save.text)["m"]
         print(save_msg, '\n\n')
-
-def get_account():
-    """
-    获取账号信息
-    """
-    print("\n\n请仔细阅读以下日志！！\n请仔细阅读以下日志！！！！\n请仔细阅读以下日志！！！！！！\n\n")
-    if os_path.exists("account.txt"):
-        print("读取账号中……")
-        with open("account.txt", "r") as old:
-            raw = old.readlines()
-        if (raw[0][:3] != "uid") or (len(raw[0]) < 10):
-            print("account.txt 内容无效, 请手动修改内容")
-            sys_exit()
-        uid = (raw[0].split(":"))[1].strip()
-        psw = (raw[1].split(":"))[1].strip()
-
-    else:
-        print("未找到account.txt, 判断为首次运行, 请接下来依次输入学号密码")
-        uid = input("学号：")
-        psw = input("密码：")
-        with open("account.txt", "w") as new:
-            tmp = "uid:" + uid + "\npsw:" + psw + "\n\n\n以上两行冒号后分别写上学号密码，不要加空格/换行，谢谢\n\n请注意文件安全，不要放在明显位置\n\n可以从dailyFudan.exe创建快捷方式到桌面"
-            new.write(tmp)
-        print("账号已保存在目录下account.txt，请注意文件安全，不要放在明显位置\n\n建议拉个快捷方式到桌面")
-
-    return uid, psw
-if __name__ == '__main__':
-    uid, psw = get_account()
-    # print(uid, psw)
-    zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
-                  'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
-    daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
-    daily_fudan.login()
-
-    daily_fudan.check()
-    daily_fudan.checkin()
-    # 再检查一遍
-    daily_fudan.check()
-
-    daily_fudan.close()

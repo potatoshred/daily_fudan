@@ -2,9 +2,6 @@
 .idea
 .idea/
 _reshape/.idea/
-account
-/get-info.txt
-/tst.py
-/account.txt
-/sess.data
-/dailyFudan3.1.py
+*.db
+account.txt
+test.py
