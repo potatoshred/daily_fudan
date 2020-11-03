@@ -4,3 +4,4 @@ __pycache__/
 *.log
 account.txt
 test.py
+__pycache__/Fudan.cpython-37.pyc

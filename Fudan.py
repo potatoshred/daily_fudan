@@ -1,11 +1,12 @@
 from lxml import etree
 from requests import session
 import time, json
-import logging 
+import logging, sys
 
+LOG_PATH = sys.path[0] + "/app.log"
 LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-logging.basicConfig(filename='app.log',format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
+logging.basicConfig(filename=LOG_PATH,format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
 
 class Fudan:
     """

@@ -1,9 +1,16 @@
 from User import User
 import sqlite3 as sql
-import logging, sys, getpass
+import sys, getpass, logging
+
+LOG_PATH = sys.path[0] + "/app.log"
+DATABASE_PATH = sys.path[0] + "/database.db"
+LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+logging.basicConfig(filename=LOG_PATH,format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
+
 
 def add_user_data():
-    con = sql.connect(sys.path[0] + "/database.db")
+    con = sql.connect(DATABASE_PATH)
     c = con.cursor()
     uid = input("请输入学号: ")
     psw = getpass.getpass("请输入密码（密码不显示）: ")
@@ -14,7 +21,7 @@ def add_user_data():
     con.close()
 
 def print_all_users():
-    con = sql.connect(sys.path[0] + "/database.db")
+    con = sql.connect(DATABASE_PATH)
     c = con.cursor()
     data = c.execute('select * from user;')
     print(data.fetchall())
@@ -22,7 +29,7 @@ def print_all_users():
 
 def dailyFudan():
 
-    con = sql.connect(sys.path[0] + "/database.db")
+    con = sql.connect(DATABASE_PATH)
     c = con.cursor()
     data = c.execute('select * from user')
     result = ""
@@ -41,21 +48,19 @@ def dailyFudan():
                 u.connect.check()
             except RuntimeError as e:
                 logging.warning("User {} failed to submit because of {}".format(u.name,e))
+                print("FAIL: User {} failed to submit because of {}".format(u.name,e))
                 result = result + "\nFAIL: User {} failed to submit because of {}".format(u.name,e)
                 continue
             u.connect.close()
+
             logging.warning("User {} submitted successfully".format(u.name))
+            print("SUCCESS: User {} submitted successfully".format(u.name))
             result = result + "\nSUCCESS: User {} submitted successfully".format(u.name)
 
     con.close()
-    print(result)
+    logging.warning(result)
 
-if __name__ == "__main__":
-
-    LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
-    DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-    logging.basicConfig(filename='app.log',format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
-
+def default():
     while True:
         print("************************************************")
         print("1.填写平安复旦")
@@ -79,3 +84,4 @@ if __name__ == "__main__":
             break
         else:
             print("You've got the wrong door!")
+
