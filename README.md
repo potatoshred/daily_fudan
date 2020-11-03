@@ -2,7 +2,7 @@
 一键平安复旦小脚本 forked from [k652](https://github.com/k652)
 
 
-A console-like script, which supports multi-users and uses Mysqlite to store user data. 
+A console-like script, which supports multi-users and uses Sqlite to store user data. 
 ## usage
 usage: daily_fudan.py [-h] [-r] [-a] [-l]
 *****************
