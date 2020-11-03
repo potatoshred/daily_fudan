@@ -3,6 +3,10 @@
 
 
 A console-like script, which supports multi-users and uses Sqlite to store user data. 
+## dependencies
+- lxml
+- requests
+
 ## usage
     usage: daily_fudan.py [-h] [-r] [-a] [-l]
     optional arguments:
