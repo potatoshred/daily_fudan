@@ -1,7 +1,6 @@
 # Default ignored files
-.idea
-.idea/
-_reshape/.idea/
+__pycache__
 *.db
+*.log
 account.txt
 test.py

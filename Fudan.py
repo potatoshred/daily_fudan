@@ -1,6 +1,11 @@
 from lxml import etree
 from requests import session
 import time, json
+import logging 
+
+LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+logging.basicConfig(filename='app.log',format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
 
 class Fudan:
     """
@@ -24,35 +29,32 @@ class Fudan:
 
         self.uid = uid
         self.psw = psw
+        self.status = False  # whether have run the submit command
 
     def _page_init(self):
         """
         检查是否能打开登录页面
         :return: 登录页page source
         """
-        print("◉Initiating——", end='')
         page_login = self.session.get(self.url_login)
-
-        print("return status code",
-              page_login.status_code)
+        logging.info("Connecting to Internet, status code = {}".format(page_login.status_code))
 
         if page_login.status_code == 200:
-            print("◉Initiated——", end="")
+            logging.info("Connect successful")
             return page_login.text
         else:
             raise RuntimeError("Fail to open Login Page, Check your Internet connection")
             
-
     def login(self):
         """
         执行登录
         """
         page_login = self._page_init()
 
-        print("parsing Login page——", end="")
+        #print("parsing Login page——", end="")
         html = etree.HTML(page_login, etree.HTMLParser())
 
-        print("getting tokens")
+        #print("getting tokens")
         data = {
             "username": self.uid,
             "password": self.psw,
@@ -74,19 +76,17 @@ class Fudan:
             "User-Agent": self.UA
         }
 
-        print("◉Login ing——", end="")
+        #print("◉Login ing——", end="")
         post = self.session.post(
                 self.url_login,
                 data=data,
                 headers=headers,
                 allow_redirects=False)
 
-        print("return status code", post.status_code)
+        logging.info("Login, status code = {}".format(post.status_code))
 
         if post.status_code == 302:
-            print("\n***********************"
-                  "\n◉登录成功"
-                  "\n***********************")
+            logging.info("Login successful")
         else:
             raise RuntimeError("登录失败，请检查账号信息")
 
@@ -99,9 +99,9 @@ class Fudan:
         # print(expire)
 
         if '01-Jan-1970' in expire:
-            print("◉登出完毕")
+            logging.info("登出完毕")
         else:
-            print("◉登出异常")
+            logging.warning("登出异常")
 
     def close(self):
         """
@@ -109,7 +109,7 @@ class Fudan:
         """
         self.logout()
         self.session.close()
-        print("◉关闭会话")
+        logging.info("关闭会话")
 
 class Zlapp(Fudan):
     '''
@@ -120,32 +120,34 @@ class Zlapp(Fudan):
 
     def check(self):
         """
-        检查是否已提交，并返回上一次提交的时间与地址
+        check whether submitted today, log last submission date and address
         """
-        print("◉检测是否已提交")
+        #print("◉检测是否已提交")
         get_info = self.session.get(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info')
         last_info = get_info.json()
 
-        print("◉上一次提交日期为:", last_info["d"]["info"]["date"])
+        logging.info("Last submission date: {}".format(last_info["d"]["info"]["date"]))
 
         position = last_info["d"]["info"]['geo_api_info']
         position = json.loads(position)
 
-        print("◉上一次提交地址为:", position['formattedAddress'])
+        logging.info("Last submission address: {}".format(position['formattedAddress']))
         # print("◉上一次提交GPS为", position["position"])
 
         today = time.strftime("%Y%m%d", time.localtime())
 
-        if last_info["d"]["info"]["date"] == today:
+        if last_info["d"]["info"]["date"] == today and self.status == False:
             raise RuntimeError("今日已提交")
+        elif last_info["d"]["info"]["date"] == today and self.status == True:
+            logging.info("Submission successful")
         else:
-            print("\n\n*******未提交*******")
+            logging.info("Haven't submitted today, starting submission")
             self.last_info = last_info["d"]["info"]
 
     def checkin(self):
         """
-        提交，并返回提交的状态
+        submit, and log submission status
         """
         headers = {
             "Host"      : "zlapp.fudan.edu.cn",
@@ -155,7 +157,7 @@ class Zlapp(Fudan):
             "User-Agent": self.UA
         }
 
-        print("\n\n◉◉提交中")
+        #print("\n\n◉◉提交中")
 
         geo_api_info = json.loads(self.last_info["geo_api_info"])
         province = geo_api_info["addressComponent"].get("province", "")
@@ -178,4 +180,5 @@ class Zlapp(Fudan):
                 allow_redirects=False)
 
         save_msg = json.loads(save.text)["m"]
-        print(save_msg, '\n\n')
+        logging.info("".format(save_msg))
+        self.status = True
