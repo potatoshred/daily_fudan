@@ -1,5 +1,5 @@
 # Default ignored files
-__pycache__
+__pycache__/
 *.db
 *.log
 account.txt
