@@ -139,7 +139,7 @@ class Zlapp(Fudan):
         today = time.strftime("%Y%m%d", time.localtime())
 
         if last_info["d"]["info"]["date"] == today and self.status == False:
-            raise RuntimeError("今日已提交")
+            raise AssertionError("今日已提交")
         elif last_info["d"]["info"]["date"] == today and self.status == True:
             logging.info("Submission successful")
         else:
