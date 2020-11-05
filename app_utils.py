@@ -16,6 +16,7 @@ def add_user_data():
     psw = getpass.getpass("请输入密码（密码不显示）: ")
     name = input("请输入姓名（仅用作标识，字与字之间请空格）: ")
     data = (uid,psw,name)
+    c.execute("CREATE TABLE IF NOT EXISTS user(uid text NOT NULL, psw text NOT NULL, name text NOT NULL);")
     c.execute('insert into user (uid, psw, name) values(?,?,?)',data)
     con.commit()
     con.close()
@@ -65,6 +66,10 @@ def dailyFudan():
 
 def default():
     while True:
+        print("\n************************************************")
+        print("*                                              *")
+        print("*             一键平安复旦小脚本               *")
+        print("*                                              *")
         print("************************************************")
         print("1.填写平安复旦")
         print("2.增加用户")
