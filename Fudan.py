@@ -2,7 +2,7 @@ from lxml import etree
 from requests import session
 import time, json
 import logging, sys
-from requests_html import HTMLSession
+#from requests_html import HTMLSession
 
 LOG_PATH = sys.path[0] + "/app.log"
 LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
