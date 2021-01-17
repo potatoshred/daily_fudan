@@ -4,8 +4,8 @@
 
 A console-like script, which supports multi-users and uses Sqlite to store user data. 
 ## dependencies
-- lxml
-- requests
+    pip3 install lxml
+    pip3 insatll requests
 
 ## usage
     usage: daily_fudan.py [-h] [-r] [-a] [-l]

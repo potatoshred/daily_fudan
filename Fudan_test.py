@@ -1,5 +1,3 @@
-from lxml import etree
-from requests import session
 import time, json
 import logging, sys
 from requests_html import HTMLSession
@@ -13,26 +11,26 @@ class Fudan:
     """
     建立与复旦服务器的会话，执行登录/登出操作
     """
-    UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0"
 
     # 初始化会话
     def __init__(self,
                  uid, psw,
-                 url_login='https://uis.fudan.edu.cn/authserver/login',
-                 host='uis.fudan.edu.cn',
-                 origin='http://uis.fudan.edu.cn'):
+                 url_login = 'https://uis.fudan.edu.cn/authserver/login',
+                 host = 'uis.fudan.edu.cn',
+                 origin = 'http://uis.fudan.edu.cn',
+                 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0"):
         """
         初始化一个session，及登录信息
         :param uid: 学号
         :param psw: 密码
         :param url_login: 登录页，默认服务为空
         """
-        self.session = session()
-        self.session.headers['User-Agent'] = self.UA
+        self.session = HTMLSession()
+        self.ua = user_agent
+        self.session.headers['User-Agent'] = self.ua
         self.url_login = url_login
         self.host = host
         self.origin = origin
-
         self.uid = uid
         self.psw = psw
         self.status = False  # whether have run the submit command
@@ -47,7 +45,7 @@ class Fudan:
 
         if page_login.status_code == 200:
             logging.info("Connect successful")
-            return page_login.text
+            return page_login.html
         else:
             raise RuntimeError("Fail to open Login Page, Check your Internet connection")
             
@@ -55,31 +53,21 @@ class Fudan:
         """
         执行登录
         """
-        page_login = self._page_init()
+        html = self._page_init()
+        code = html.find('input:hidden',first=True)
 
-        #print("parsing Login page——", end="")
-        html = etree.HTML(page_login, etree.HTMLParser())
-
-        #print("getting tokens")
         data = {
             "username": self.uid,
             "password": self.psw,
-            "service" : service
+            #"service" : service,
+            code.attrs["name"] : code.attrs["value"]
         }
-
-        # 获取登录页上的令牌
-        data.update(
-                zip(
-                        html.xpath("/html/body/form/input/@name"),
-                        html.xpath("/html/body/form/input/@value")
-                )
-        )
 
         headers = {
             "Host"      : self.host,
             "Origin"    : self.origin,
             "Referer"   : self.url_login,
-            "User-Agent": self.UA
+            "User-Agent": self.ua
         }
 
         #print("◉Login ing——", end="")
@@ -88,6 +76,9 @@ class Fudan:
                 data=data,
                 headers=headers,
                 allow_redirects=False)
+                
+        print(post.html.html)
+        return 0
 
         logging.info("Login, status code = {}".format(post.status_code))
 
@@ -159,7 +150,7 @@ class Zlapp(Fudan):
             "Referer"   : "https://zlapp.fudan.edu.cn/site/ncov/fudanDaily?from=history",
             "DNT"       : "1",
             "TE"        : "Trailers",
-            "User-Agent": self.UA
+            "User-Agent": self.ua
         }
 
         #print("\n\n◉◉提交中")
