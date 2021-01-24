@@ -4,10 +4,10 @@ import time, json
 import logging, sys
 #from requests_html import HTMLSession
 
-LOG_PATH = sys.path[0] + "/app.log"
-LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-logging.basicConfig(filename=LOG_PATH,format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
+# LOG_PATH = sys.path[0] + "/app.log"
+# LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
+# DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+# logging.basicConfig(filename=LOG_PATH,format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
 
 class Fudan:
     """
@@ -43,10 +43,10 @@ class Fudan:
         :return: 登录页page source
         """
         page_login = self.session.get(self.url_login)
-        logging.info("Connecting to Internet, status code = {}".format(page_login.status_code))
+        #logging.info("Connecting to Internet, status code = {}".format(page_login.status_code))
 
         if page_login.status_code == 200:
-            logging.info("Connect successful")
+        #    logging.info("Connect successful")
             return page_login.text
         else:
             raise RuntimeError("Fail to open Login Page, Check your Internet connection")
@@ -89,10 +89,11 @@ class Fudan:
                 headers=headers,
                 allow_redirects=False)
 
-        logging.info("Login, status code = {}".format(post.status_code))
+        #logging.info("Login, status code = {}".format(post.status_code))
 
         if post.status_code == 302:
-            logging.info("Login successful")
+            pass
+        #    logging.info("Login successful")
         else:
             raise RuntimeError("登录失败，请检查账号信息")
 
@@ -104,9 +105,11 @@ class Fudan:
         # print(expire)
 
         if '01-Jan-1970' in expire:
-            logging.info("登出完毕")
+            pass
+        #    logging.info("登出完毕")
         else:
-            logging.warning("登出异常")
+            pass
+        #    logging.warning("登出异常")
 
     def close(self):
         """
@@ -114,7 +117,7 @@ class Fudan:
         """
         self.logout()
         self.session.close()
-        logging.info("关闭会话")
+        #logging.info("关闭会话")
 
 class Zlapp(Fudan):
     '''
@@ -181,5 +184,5 @@ class Zlapp(Fudan):
                 allow_redirects=False)
 
         save_msg = json.loads(save.text)["m"]
-        logging.info("".format(save_msg))
+        #logging.info("".format(save_msg))
         self.status = True
