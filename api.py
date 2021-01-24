@@ -1,7 +1,5 @@
 from fudan import Zlapp
 
-
-
 def run(uid, psw):
     zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
                   'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
