@@ -1,4 +1,4 @@
-from Fudan import Zlapp
+from fudan import Zlapp
 
 class User:
     '''

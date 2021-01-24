@@ -131,23 +131,21 @@ class Zlapp(Fudan):
         get_info = self.session.get(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info')
         last_info = get_info.json()
-
-        logging.info("Last submission date: {}".format(last_info["d"]["info"]["date"]))
+        date = last_info["d"]["info"]["date"]
 
         position = last_info["d"]["info"]['geo_api_info']
         position = json.loads(position)
+        address = position['formattedAddress']
 
-        logging.info("Last submission address: {}".format(position['formattedAddress']))
-        # print("◉上一次提交GPS为", position["position"])
+        message = " 日期：{}，地址：{}".format(date, address)
 
         today = time.strftime("%Y%m%d", time.localtime())
-
-        if last_info["d"]["info"]["date"] == today and self.status == False:
-            raise AssertionError("今日已提交")
-        elif last_info["d"]["info"]["date"] == today and self.status == True:
-            logging.info("Submission successful")
+        if date == today and self.status == False:
+            raise AssertionError("今日已提交" + message)
+        elif date == today and self.status == True:
+            return "提交成功" + message
         else:
-            logging.info("Haven't submitted today, starting submission")
+            # 尚未提交
             self.last_info = last_info["d"]["info"]
 
     def checkin(self):
@@ -161,8 +159,6 @@ class Zlapp(Fudan):
             "TE"        : "Trailers",
             "User-Agent": self.UA
         }
-
-        #print("\n\n◉◉提交中")
 
         geo_api_info = json.loads(self.last_info["geo_api_info"])
         province = geo_api_info["addressComponent"].get("province", "")

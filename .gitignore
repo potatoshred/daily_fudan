@@ -3,5 +3,5 @@ __pycache__/
 *.db
 *.log
 account.txt
-test.py
+*test.py
 config.json
