@@ -80,7 +80,6 @@ def dailyFudan():
     con = sql.connect(DATABASE_PATH)
     c = con.cursor()
     data = c.execute('select * from user')
-    result = ""
 
     while True:
         user_data = data.fetchone()
@@ -88,28 +87,20 @@ def dailyFudan():
             break
         else:
             u = User(user_data)
-            logging.warning("Starting submission for user {}".format(u.name))
             try:
                 u.connect.login()
                 u.connect.check()
                 u.connect.checkin()
                 u.connect.check()
             except RuntimeError as e:
-                logging.warning("User {} failed to submit because of {}".format(u.name,e))
                 print("FAIL: User {} failed to submit because of {}".format(u.name,e))
-                result = result + "\nFAIL: User {} failed to submit because of {}".format(u.name,e)
             except AssertionError as e:
-                logging.warning("User {} submitted successfully because of {}".format(u.name,e))
                 print("SUCCESS: User {} submitted successfully because of {}".format(u.name,e))
-                result = result + "\nSUCCESS: User {} submitted successfully because of {}".format(u.name,e)
             else:
-                logging.warning("User {} submitted successfully".format(u.name))
                 print("SUCCESS: User {} submitted successfully".format(u.name))
-                result = result + "\nSUCCESS: User {} submitted successfully".format(u.name)
             finally:
                 u.connect.close()
     con.close()
-    logging.warning(result)
 
 def default():
     print("************************************************")

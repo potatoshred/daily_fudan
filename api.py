@@ -11,9 +11,16 @@ def run(uid, psw):
         message = u.check()
     except RuntimeError as e:
         message = "提交失败 {}".format(e)
+        print(message)
+        result = {'status': False, 'message': message}
     except AssertionError as e:
         message = "提交成功 {}".format(e)
+        print(message)
+        result = {'status': True, 'message': message}
+    else:
+        print(message)
+        result = {'status': True, 'message': message}
     finally:
         u.close()
     
-    return message
+    return result
