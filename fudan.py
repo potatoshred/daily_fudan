@@ -2,12 +2,6 @@ from lxml import etree
 from requests import session
 import time, json
 import logging, sys
-#from requests_html import HTMLSession
-
-# LOG_PATH = sys.path[0] + "/app.log"
-# LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
-# DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-# logging.basicConfig(filename=LOG_PATH,format=LOG_FORMAT,datefmt=DATE_FORMAT,level='INFO')
 
 class Fudan:
     """
@@ -49,7 +43,7 @@ class Fudan:
         #    logging.info("Connect successful")
             return page_login.text
         else:
-            raise RuntimeError("Fail to open Login Page, Check your Internet connection")
+            raise RuntimeError("无法打开页面，请检查网络连接")
             
     def login(self,service='https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'):
         """
@@ -130,7 +124,7 @@ class Zlapp(Fudan):
         """
         check whether submitted today, log last submission date and address
         """
-        #print("◉检测是否已提交")
+        print("◉检测是否已提交")
         get_info = self.session.get(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info')
         last_info = get_info.json()
@@ -148,8 +142,10 @@ class Zlapp(Fudan):
         elif date == today and self.status == True:
             return "提交成功" + message
         else:
-            # 尚未提交
+            
             self.last_info = last_info["d"]["info"]
+            print('尚未提交')
+            return('尚未提交')
 
     def checkin(self):
         """
@@ -163,9 +159,11 @@ class Zlapp(Fudan):
             "User-Agent": self.UA
         }
 
+
         geo_api_info = json.loads(self.last_info["geo_api_info"])
         province = geo_api_info["addressComponent"].get("province", "")
         city = geo_api_info["addressComponent"].get("city", "")
+        if not city: city = province
         district = geo_api_info["addressComponent"].get("district", "")
         self.last_info.update(
                 {
@@ -175,7 +173,7 @@ class Zlapp(Fudan):
                     "area"    : " ".join((province, city, district))
                 }
         )
-        # print(self.last_info)
+        print(self.last_info)
 
         save = self.session.post(
                 'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
@@ -184,5 +182,5 @@ class Zlapp(Fudan):
                 allow_redirects=False)
 
         save_msg = json.loads(save.text)["m"]
-        #logging.info("".format(save_msg))
+        print(save_msg)
         self.status = True
