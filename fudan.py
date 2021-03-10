@@ -29,7 +29,6 @@ class Fudan:
 
         self.uid = uid
         self.psw = psw
-        self.status = False  # whether have run the submit command
 
     def _page_init(self):
         """
@@ -37,13 +36,11 @@ class Fudan:
         :return: 登录页page source
         """
         page_login = self.session.get(self.url_login)
-        #logging.info("Connecting to Internet, status code = {}".format(page_login.status_code))
 
         if page_login.status_code == 200:
-        #    logging.info("Connect successful")
             return page_login.text
         else:
-            raise RuntimeError("无法打开页面，请检查网络连接")
+            raise Exception("无法打开页面，请检查网络连接")
             
     def login(self,service='https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'):
         """
@@ -86,10 +83,9 @@ class Fudan:
         #logging.info("Login, status code = {}".format(post.status_code))
 
         if post.status_code == 302:
-            pass
-        #    logging.info("Login successful")
+            return {'status': 0, 'message': '登录成功'}
         else:
-            raise RuntimeError("登录失败，请检查账号信息")
+            raise Exception("登录失败，请检查账号信息，状态码 {}".format(post.status_code))
 
     def logout(self,url='https://uis.fudan.edu.cn/authserver/logout?service=/authserver/login'):
         """
@@ -99,11 +95,9 @@ class Fudan:
         # print(expire)
 
         if '01-Jan-1970' in expire:
-            pass
-        #    logging.info("登出完毕")
+            return {'status': 0, 'message': '登出成功'}
         else:
-            pass
-        #    logging.warning("登出异常")
+            raise Exception('登出异常')
 
     def close(self):
         """
@@ -111,46 +105,42 @@ class Fudan:
         """
         self.logout()
         self.session.close()
-        #logging.info("关闭会话")
 
 class Zlapp(Fudan):
     '''
     检查是否已提交平安复旦的信息，并根据上一次填写的地理位置填报
     '''
 
-    last_info = ''
+    def __init__(self, uid, psw, url_login='https://uis.fudan.edu.cn/authserver/login', host='uis.fudan.edu.cn', origin='http://uis.fudan.edu.cn'):
+        super().__init__(uid, psw, url_login=url_login, host=host, origin=origin)
+        self.has_submitted = False
 
     def check(self):
         """
-        check whether submitted today, log last submission date and address
+        检查今日是否已提交
         """
-        print("◉检测是否已提交")
-        get_info = self.session.get(
-                'https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info')
-        last_info = get_info.json()
-        date = last_info["d"]["info"]["date"]
+        last_info = self.session.get('https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info').json()["d"]["info"]
 
-        position = last_info["d"]["info"]['geo_api_info']
-        position = json.loads(position)
-        address = position['formattedAddress']
-
-        message = " 日期：{}，地址：{}".format(date, address)
+        date = last_info["date"]
+        address = json.loads(last_info['geo_api_info'])['formattedAddress']
 
         today = time.strftime("%Y%m%d", time.localtime())
-        if date == today and self.status == False:
-            raise AssertionError("今日已提交" + message)
-        elif date == today and self.status == True:
-            return "提交成功" + message
+        message = "日期：{}，地址：{}".format(date, address)
+        if date == today and self.has_submitted == False:
+            return {'status': 2, 'message': "今日已提交 " + message}
+        elif date == today and self.has_submitted == True:
+            return {'status': 0, 'message': "提交成功" + message}
         else:
-            
-            self.last_info = last_info["d"]["info"]
-            print('尚未提交')
-            return('尚未提交')
+            return {'status': 1, 'message': '尚未提交', 'formdata': last_info}
 
     def checkin(self):
         """
-        submit, and log submission status
+        执行提交
         """
+        check = self.check()
+        if check['status'] != 1: return check
+        formdata = check['formdata']
+
         headers = {
             "Host"      : "zlapp.fudan.edu.cn",
             "Referer"   : "https://zlapp.fudan.edu.cn/site/ncov/fudanDaily?from=history",
@@ -158,29 +148,33 @@ class Zlapp(Fudan):
             "TE"        : "Trailers",
             "User-Agent": self.UA
         }
-
-
-        geo_api_info = json.loads(self.last_info["geo_api_info"])
-        province = geo_api_info["addressComponent"].get("province", "")
-        city = geo_api_info["addressComponent"].get("city", "")
+        
+        address = formdata["geo_api_info"]["addressComponent"]
+        province = address.get("province", "")
+        city = address.get("city", "")
         if not city: city = province
-        district = geo_api_info["addressComponent"].get("district", "")
-        self.last_info.update(
-                {
-                    "tw"      : "13",
-                    "province": province,
-                    "city"    : city,
-                    "area"    : " ".join((province, city, district))
-                }
+        district = address.get("district", "")
+
+        formdata.update({
+            "tw"      : "13",
+            "province": province,
+            "city"    : city,
+            "area"    : " ".join((province, city, district))
+        })
+
+        r = self.session.post(
+            'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
+            data=formdata,
+            headers=headers,
+            allow_redirects=False
         )
-        print(self.last_info)
 
-        save = self.session.post(
-                'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
-                data=self.last_info,
-                headers=headers,
-                allow_redirects=False)
+        save_msg = json.loads(r.text)["m"]
 
-        save_msg = json.loads(save.text)["m"]
         print(save_msg)
-        self.status = True
+
+        if save_msg != '': raise Exception('提交失败 ' + save_msg)
+
+        self.has_submitted = True
+        return self.check()
+        

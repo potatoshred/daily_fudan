@@ -3,5 +3,7 @@ __pycache__/
 *.db
 *.log
 account.txt
-*test.py
+*test.*
 config.json
+secret.py
+*.bak
