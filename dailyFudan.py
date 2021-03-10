@@ -2,6 +2,7 @@ import time
 from json import loads as json_loads
 from os import path as os_path
 from sys import exit as sys_exit
+from sys import argv as sys_argv
 
 from lxml import etree
 from requests import session
@@ -188,7 +189,7 @@ def get_account():
     """
     获取账号信息
     """
-    uid, psw = input().strip().split(' ')
+    uid, psw = sys_argv[1].strip().split(' ')
     return uid, psw
 
 if __name__ == '__main__':
