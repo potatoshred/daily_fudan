@@ -7,6 +7,7 @@ name = "pypi"
 lxml = "*"
 requests = "*"
 mysqlclient = "*"
+yapf = "*"
 
 [dev-packages]
 

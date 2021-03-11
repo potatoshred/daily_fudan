@@ -1,13 +1,11 @@
 from lxml import etree
 from requests import session
-import time, json
-import logging, sys
+import time, json, sys
 
 class Fudan:
     """
     建立与复旦服务器的会话，执行登录/登出操作
     """
-    UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0"
 
     # 初始化会话
     def __init__(self,
@@ -21,14 +19,15 @@ class Fudan:
         :param psw: 密码
         :param url_login: 登录页，默认服务为空
         """
-        self.session = session()
-        self.session.headers['User-Agent'] = self.UA
+        self.UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0"
         self.url_login = url_login
         self.host = host
         self.origin = origin
-
         self.uid = uid
         self.psw = psw
+
+        self.session = session()
+        self.session.headers['User-Agent'] = self.UA
 
     def _page_init(self):
         """
@@ -48,10 +47,8 @@ class Fudan:
         """
         page_login = self._page_init()
 
-        #print("parsing Login page——", end="")
         html = etree.HTML(page_login, etree.HTMLParser())
 
-        #print("getting tokens")
         data = {
             "username": self.uid,
             "password": self.psw,
@@ -73,14 +70,11 @@ class Fudan:
             "User-Agent": self.UA
         }
 
-        #print("◉Login ing——", end="")
         post = self.session.post(
                 self.url_login,
                 data=data,
                 headers=headers,
                 allow_redirects=False)
-
-        #logging.info("Login, status code = {}".format(post.status_code))
 
         if post.status_code == 302:
             return {'status': 0, 'message': '登录成功'}
@@ -122,12 +116,13 @@ class Zlapp(Fudan):
         last_info = self.session.get('https://zlapp.fudan.edu.cn/ncov/wap/fudan/get-info').json()["d"]["info"]
 
         date = last_info["date"]
+        # geo_api_info is a string, so use json.loads(), same in checkin()
         address = json.loads(last_info['geo_api_info'])['formattedAddress']
 
         today = time.strftime("%Y%m%d", time.localtime())
-        message = "日期：{}，地址：{}".format(date, address)
+        message = "    日期：{}，地址：{}".format(date, address)
         if date == today and self.has_submitted == False:
-            return {'status': 2, 'message': "今日已提交 " + message}
+            return {'status': 2, 'message': "今日已提交" + message}
         elif date == today and self.has_submitted == True:
             return {'status': 0, 'message': "提交成功" + message}
         else:
@@ -149,7 +144,7 @@ class Zlapp(Fudan):
             "User-Agent": self.UA
         }
         
-        address = formdata["geo_api_info"]["addressComponent"]
+        address = json.loads(formdata["geo_api_info"])["addressComponent"]
         province = address.get("province", "")
         city = address.get("city", "")
         if not city: city = province
@@ -170,11 +165,8 @@ class Zlapp(Fudan):
         )
 
         save_msg = json.loads(r.text)["m"]
-
-        print(save_msg)
-
-        if save_msg != '': raise Exception('提交失败 ' + save_msg)
+        if save_msg != '操作成功': raise Exception('提交失败 ' + save_msg)
 
         self.has_submitted = True
-        return self.check()
+        return self.check() # check again
         
