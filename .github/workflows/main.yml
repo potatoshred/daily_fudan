@@ -7,7 +7,7 @@ on:
 
 env:
   # auto merge from y1ndan/genshin-impact-helper, default: false
-  ALLOW_MERGE: 'false'
+  ALLOW_MERGE: 'true'
   RUN_ENV: 'prod'
   TZ: 'Asia/Shanghai'
 
