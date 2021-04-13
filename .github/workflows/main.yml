@@ -28,7 +28,7 @@ jobs:
         run: |
           git config --global user.name  github-actions
           git config --global user.email github-actions@github.com
-          git remote add upstream https://github.com/k652/daily_fudan
+          git remote add upstream https://github.com/tsandl/daily_fudan
           git pull upstream master --allow-unrelated-histories
           git push origin master
       - name: Set up python
