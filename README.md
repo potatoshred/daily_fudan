@@ -41,10 +41,11 @@
 ![new-secret.png](https://i.loli.net/2020/10/28/sxTuBFtRvzSgUaA.png)
 
 - 建立名为`FUDAN`的 secret，值为`学号`+`(空格)`+`密码`，最后点击`Add secret`
-
 - secret名字必须为`FUDAN`！
 - secret名字必须为`FUDAN`！
 - secret名字必须为`FUDAN`！
+- 如果要开启成功填写的通知，在 http://iyuu.cn/ 申请token 然后在密码后面+ `(空格)`+`token`
+- `学号`+`(空格)`+`密码`+ `(空格)`+`token`
 
 ### 4. 启用 Actions
 

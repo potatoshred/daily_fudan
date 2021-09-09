@@ -10,6 +10,19 @@ import logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
+# WeChat notice
+#get token via http://iyuu.cn/
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+def iyuu(IYUU_TOKEN):
+    url = f"https://iyuu.cn/{IYUU_TOKEN}.send"
+    headers = {'Content-type': 'application/x-www-form-urlencoded'}
+    def send(text, desp=""):
+        Form = {'text': text, 'desp': desp}
+        return requests.post(url, data=Form, headers=headers, verify=False)
+    return send
+
 
 class Fudan:
     """
@@ -93,9 +106,11 @@ class Fudan:
 
         if post.status_code == 302:
             logging.debug("登录成功")
+            return True
         else:
             logging.debug("登录失败，请检查账号信息")
             self.close()
+            return False
 
     def logout(self):
         """
@@ -116,7 +131,7 @@ class Fudan:
         self.logout()
         self.session.close()
         logging.debug("关闭会话")
-        sys_exit()
+        # sys_exit() 通知完成再退出 注释掉
 
 class Zlapp(Fudan):
     last_info = ''
@@ -143,9 +158,11 @@ class Zlapp(Fudan):
         if last_info["d"]["info"]["date"] == today:
             logging.info("今日已提交")
             self.close()
+            return True
         else:
             logging.info("未提交")
             self.last_info = last_info["d"]["info"]
+            return False
 
     def checkin(self):
         """
@@ -189,20 +206,35 @@ def get_account():
     """
     获取账号信息
     """
-    uid, psw = sys_argv[1].strip().split(' ')
-    return uid, psw
+    uid, psw, *IYUU_TOKEN = sys_argv[1].strip().split(' ')
+    return uid, psw, IYUU_TOKEN
 
 if __name__ == '__main__':
-    uid, psw = get_account()
+    uid, psw, IYUU_TOKE = get_account()
+    if IYUU_TOKE: #有token则通知，无token不通知
+        IYUU_TOKE = IYUU_TOKE[0]
+        iy_info = iyuu(IYUU_TOKE)
+    else:
+        def iy_info(text, desp=""):
+            pass
+
     # logging.debug("ACCOUNT：" + uid + psw)
     zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
                   'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
     daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
-    daily_fudan.login()
+    if not daily_fudan.login():
+        iy_info("平安复旦：登陆失败")
+        sys_exit()
 
-    daily_fudan.check()
+    if daily_fudan.check():
+        iy_info("平安复旦：今日已提交")
+        sys_exit()
     daily_fudan.checkin()
     # 再检查一遍
-    daily_fudan.check()
+    if daily_fudan.check():
+        iy_info("平安复旦：今日已提交")
+    else:
+        iy_info("平安复旦：本次提交失败")
 
     daily_fudan.close()
+    sys_exit()
