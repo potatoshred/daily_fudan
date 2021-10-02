@@ -1,5 +1,6 @@
 import time
 from json import loads as json_loads
+from json import dumps as json_dumps
 from os import path as os_path
 from sys import exit as sys_exit
 from sys import argv as sys_argv
@@ -167,6 +168,14 @@ class Zlapp(Fudan):
         if last_info["d"]["info"]["date"] == today:
             logging.info("今日已提交")
             self.close()
+            global gl_info
+            gl_info = last_info
+            geo_api_info = json_loads(self.last_info["geo_api_info"])
+            province = geo_api_info["addressComponent"].get("province", "")
+            city = geo_api_info["addressComponent"].get("city", "") or province
+            district = geo_api_info["addressComponent"].get("district", "")
+            gl_info['dailyFudan'] = " ".join(set_q((province, city, district)))
+            gl_info = json_dumps(gl_info, indent=4, ensure_ascii=False)
             return True
         else:
             logging.info("未提交")
@@ -218,6 +227,7 @@ def get_account():
     uid, psw, *IYUU_TOKEN = sys_argv[1].strip().split(' ')
     return uid, psw, IYUU_TOKEN
 
+gl_info = "快去手动填写！"
 if __name__ == '__main__':
     uid, psw, IYUU_TOKE = get_account()
     if IYUU_TOKE: #有token则通知，无token不通知
@@ -232,18 +242,18 @@ if __name__ == '__main__':
                   'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
     daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
     if not daily_fudan.login():
-        iy_info("平安复旦：登陆失败")
+        iy_info("平安复旦：登陆失败", gl_info)
         sys_exit()
 
     if daily_fudan.check():
-        iy_info("平安复旦：今日已提交")
+        iy_info("平安复旦：今日已提交", gl_info)
         sys_exit()
     daily_fudan.checkin()
     # 再检查一遍
     if daily_fudan.check():
-        iy_info("平安复旦：今日已提交")
+        iy_info("平安复旦：今日已提交", gl_info)
     else:
-        iy_info("平安复旦：本次提交失败")
+        iy_info("平安复旦：本次提交失败", gl_info)
 
     daily_fudan.close()
     sys_exit()
