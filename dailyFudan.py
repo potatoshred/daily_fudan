@@ -23,6 +23,15 @@ def iyuu(IYUU_TOKEN):
         return requests.post(url, data=Form, headers=headers, verify=False)
     return send
 
+# fix random area bug
+def set_q(iterO):
+    res = list()
+    for item in iterO:
+        if item not in res:
+            res.append(item)
+    return res
+
+
 
 class Fudan:
     """
@@ -187,7 +196,7 @@ class Zlapp(Fudan):
                     "tw"      : "13",
                     "province": province,
                     "city"    : city,
-                    "area"    : " ".join(set((province, city, district))),
+                    "area"    : " ".join(set_q((province, city, district))),
                     "ismoved" : 0
                 }
         )
