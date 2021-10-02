@@ -170,7 +170,7 @@ class Zlapp(Fudan):
             self.close()
             global gl_info
             gl_info = last_info
-            geo_api_info = json_loads(self.last_info["geo_api_info"])
+            geo_api_info = json_loads(last_info["d"]["info"]["geo_api_info"])
             province = geo_api_info["addressComponent"].get("province", "")
             city = geo_api_info["addressComponent"].get("city", "") or province
             district = geo_api_info["addressComponent"].get("district", "")
