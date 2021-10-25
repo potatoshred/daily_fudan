@@ -30,8 +30,8 @@ jobs:
           git config --global user.email github-actions@github.com
           git config pull.ff only
           git remote add upstream https://github.com/Limourli-liu/daily_fudan.git
-          git pull upstream master --allow-unrelated-histories --ff-only on
-          git push --force origin master
+          git pull upstream master --allow-unrelated-histories --ff-only
+          git push origin master --force
       - name: Set up python
         uses: actions/setup-python@v2
         with:
