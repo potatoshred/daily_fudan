@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO,
 # WeChat notice
 #get token via http://iyuu.cn/
 import requests
+from captcha_break import DailyFDCaptcha
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 def iyuu(IYUU_TOKEN):
@@ -182,7 +183,7 @@ class Zlapp(Fudan):
             self.last_info = last_info["d"]["info"]
             return False
 
-    def checkin(self):
+    def checkin(self, captcha):
         """
         提交
         """
@@ -210,15 +211,26 @@ class Zlapp(Fudan):
                 }
         )
         # logging.debug(self.last_info)
+        for i in range(3):
+            captcha_text = captcha()
+            #captcha_text = 'abcd'
+            self.last_info.update({
+                'sfzx': 1,
+                'code': captcha_text
+            })
+            save = self.session.post(
+                    'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
+                    data=self.last_info,
+                    headers=headers,
+                    allow_redirects=False)
 
-        save = self.session.post(
-                'https://zlapp.fudan.edu.cn/ncov/wap/fudan/save',
-                data=self.last_info,
-                headers=headers,
-                allow_redirects=False)
-
-        save_msg = json_loads(save.text)["m"]
-        logging.info(save_msg)
+            save_msg = json_loads(save.text)["m"]
+            logging.info(save_msg)
+            if save_msg != '验证码错误':
+                break
+            else:
+                captcha.reportError()
+                print('captcha.reportError')
 
 def get_account():
     """
@@ -231,11 +243,18 @@ gl_info = "快去手动填写！"
 if __name__ == '__main__':
     uid, psw, IYUU_TOKE = get_account()
     if IYUU_TOKE: #有token则通知，无token不通知
+        if len(IYUU_TOKE) != 3:
+            logging.error("请正确配置微信通知功能和验证码打码功能～\n")
+            sys_exit(1)
+        uname = IYUU_TOKE[1]
+        pwd = IYUU_TOKE[2]
         IYUU_TOKE = IYUU_TOKE[0]
         iy_info = iyuu(IYUU_TOKE)
     else:
         def iy_info(text, desp=""):
             pass
+        logging.error("请按readme操作，以正确完成配置～\n")
+        sys_exit(1)
 
     # logging.debug("ACCOUNT：" + uid + psw)
     zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
@@ -248,7 +267,12 @@ if __name__ == '__main__':
     if daily_fudan.check():
         iy_info("平安复旦：今日已提交", gl_info)
         sys_exit()
-    daily_fudan.checkin()
+
+    def captcha_info(message):
+        iy_info(message, gl_info)
+    captcha = DailyFDCaptcha(uname,pwd,daily_fudan,captcha_info)
+    daily_fudan.checkin(captcha)
+
     # 再检查一遍
     if daily_fudan.check():
         iy_info("平安复旦：今日已提交", gl_info)
