@@ -249,7 +249,11 @@ if __name__ == '__main__':
         uname = IYUU_TOKE[1]
         pwd = IYUU_TOKE[2]
         IYUU_TOKE = IYUU_TOKE[0]
-        iy_info = iyuu(IYUU_TOKE)
+        if IYUU_TOKE.startswith('IYUU'):
+            iy_info = iyuu(IYUU_TOKE)
+        else:
+            def iy_info(text, desp=""):
+                pass
     else:
         def iy_info(text, desp=""):
             pass
