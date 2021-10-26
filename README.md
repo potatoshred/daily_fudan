@@ -1,3 +1,9 @@
+10.26 更新：
+[Limourli-liu](https://github.com/Limourli-liu)添加验证码识别及微信通知功能
+
+具体查看：https://github.com/k652/daily_fudan/pulls?q=is%3Apr+is%3Aclosed
+
+
 
 # 免责声明
 郑重声明：本人只是使用该脚本测试微信通知功能，并不了解脚本本身功能，未参与脚本开发，不承担一切相关与连带责任。
